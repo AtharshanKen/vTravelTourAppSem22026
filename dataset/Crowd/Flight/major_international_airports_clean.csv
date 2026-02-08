@@ -1,0 +1,45 @@
+IATA_Code,Airport_Name,City,Country
+DUB,Dublin Airport,Dublin,Ireland
+AKL,Auckland Airport,Auckland,New Zealand
+YYZ,Toronto Pearson International Airport,Toronto,Canada
+YVR,Vancouver International Airport,Vancouver,Canada
+YUL,Montréal-Trudeau International Airport,Montreal,Canada
+YEG,Edmonto International Airport,Edmonto,Canada
+YYC,Calgary International Airport,Calgary,Canada
+JFK,John F. Kennedy International Airport,New York,USA
+LGA,LaGuardia Airport,New York,USA
+EWR,Newark Liberty International Airport,Newark,USA
+LAX,Los Angeles International Airport,Los Angeles,USA
+SFO,San Francisco International Airport,San Francisco,USA
+ORD,O'Hare International Airport,Chicago,USA
+DFW,Dallas/Fort Worth International Airport,Dallas–Fort Worth,USA
+ATL,Hartsfield-Jackson Atlanta International Airport,Atlanta,USA
+MIA,Miami International Airport,Miami,USA
+CDG,Charles de Gaulle Airport,Paris,France
+ORY,Orly Airport,Paris,France
+LHR,Heathrow Airport,London,United Kingdom
+LGW,Gatwick Airport,London,United Kingdom
+AMS,Amsterdam Airport Schiphol,Amsterdam,Netherlands
+FRA,Frankfurt Airport,Frankfurt,Germany
+MUC,Munich Airport,Munich,Germany
+MAD,Adolfo Suárez Madrid-Barajas Airport,Madrid,Spain
+BCN,Barcelona-El Prat Airport,Barcelona,Spain
+FCO,Leonardo da Vinci-Fiumicino Airport,Rome,Italy
+MXP,Milan Malpensa Airport,Milan,Italy
+DXB,Dubai International Airport,Dubai,United Arab Emirates
+DOH,Hamad International Airport,Doha,Qatar
+HND,Haneda Airport,Tokyo,Japan
+NRT,Narita International Airport,Tokyo,Japan
+ICN,Incheon International Airport,Seoul,South Korea
+PEK,Beijing Capital International Airport,Beijing,China
+PVG,Shanghai Pudong International Airport,Shanghai,China
+SIN,Singapore Changi Airport,Singapore,Singapore
+BKK,Suvarnabhumi Airport,Bangkok,Thailand
+SYD,Sydney Kingsford Smith Airport,Sydney,Australia
+MEL,Melbourne Airport,Melbourne,Australia
+DEL,Indira Gandhi International Airport,Delhi,India
+BOM,Chhatrapati Shivaji Maharaj International Airport,Mumbai,India
+JNB,O. R. Tambo International Airport,Johannesburg,South Africa
+CPT,Cape Town International Airport,Cape Town,South Africa
+GRU,São Paulo-Guarulhos International Airport,São Paulo,Brazil
+GIG,Rio de Janeiro-Galeão International Airport,Rio de Janeiro,Brazil
