@@ -1,0 +1,7 @@
+pandas>=0.19
+numpy>= 1.11.0
+# scikit-learn>=1.6.1
+streamlit==1.50.0
+plotly==6.4.0
+# statsmodels==0.14.5
+openai==2.7.1
