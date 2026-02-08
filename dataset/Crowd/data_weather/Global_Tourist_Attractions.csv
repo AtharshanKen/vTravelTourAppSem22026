@@ -1,0 +1,36 @@
+Location_Name,Type_of_Attraction,Attraction_Category,City,Country,Latitude,Longitude,Location_ID
+CN Tower,Observation Tower,Entertainment,Toronto,Canada,43.6426,-79.3871,CNTOR_1
+Royal Ontario Museum,Museum,Cultural,Toronto,Canada,43.6677,-79.3948,CNTOR_2
+Distillery District,Entertainment District,Entertainment,Toronto,Canada,43.65,-79.359,CNTOR_3
+High Park,Urban Park,Nature,Toronto,Canada,43.6465,-79.4637,CNTOR_4
+Harbourfront Centre,Waterfront,Entertainment,Toronto,Canada,43.6387,-79.382,CNTOR_5
+Sydney Opera House,Historic Site,Cultural,Sydney,Australia,-33.8568,151.2153,AUSSYD_1
+Sydney Harbour Bridge,Waterfront,Entertainment,Sydney,Australia,-33.8523,151.2108,AUSSYD_2
+Bondi Beach,Beach,Nature,Sydney,Australia,-33.8908,151.2743,AUSSYD_3
+Darling Harbour,Waterfront,Entertainment,Sydney,Australia,-33.8728,151.1986,AUSSYD_4
+Taronga Zoo,Zoo,Entertainment,Sydney,Australia,-33.843,151.2417,AUSSYD_5
+Federation Square,Historic Site,Cultural,Melbourne,Australia,-37.8179,144.9691,AUSMEL_1
+Melbourne Museum,Museum,Cultural,Melbourne,Australia,-37.8033,144.9717,AUSMEL_2
+St Kilda Beach,Beach,Nature,Melbourne,Australia,-37.8676,144.9809,AUSMEL_3
+Royal Botanic Gardens Melbourne,Garden,Nature,Melbourne,Australia,-37.8304,144.9796,AUSMEL_4
+Queen Victoria Market,Market,Shopping,Melbourne,Australia,-37.8077,144.9576,AUSMEL_5
+West Edmonton Mall,Historic Site,Cultural,Edmonton,Canada,53.5231,-113.6246,CNEDM_1
+Fort Edmonton Park,Urban Park,Nature,Edmonton,Canada,53.5084,-113.5713,CNEDM_2
+Muttart Conservatory,Historic Site,Cultural,Edmonton,Canada,53.5331,-113.4668,CNEDM_3
+Royal Alberta Museum,Museum,Cultural,Edmonton,Canada,53.5448,-113.4861,CNEDM_4
+Ice District,Entertainment District,Entertainment,Edmonton,Canada,53.5461,-113.497,CNEDM_5
+Trinity College & Book of Kells,University,Cultural,Dublin,Ireland,53.3438,-6.254,IRDUB_1
+Guinness Storehouse,Historic Site,Cultural,Dublin,Ireland,53.3419,-6.2869,IRDUB_2
+St Stephen's Green,Urban Park,Nature,Dublin,Ireland,53.3382,-6.2591,IRDUB_3
+Temple Bar District,Entertainment District,Entertainment,Dublin,Ireland,53.3455,-6.2643,IRDUB_4
+Dublin Castle,Historic Site,Cultural,Dublin,Ireland,53.3429,-6.2674,IRDUB_5
+Phoenix Park,Urban Park,Nature,Dublin,Ireland,53.356,-6.329,IRDUB_6
+St Patrick's Cathedral,Religious Site,Cultural,Dublin,Ireland,53.3395,-6.271,IRDUB_7
+EPIC The Irish Emigration Museum,Museum,Cultural,Dublin,Ireland,53.3471,-6.2416,IRDUB_8
+Sky Tower,Observation Tower,Entertainment,Auckland,New Zealand,-36.8485,174.7633,NZAUK_1
+Auckland War Memorial Museum,Museum,Cultural,Auckland,New Zealand,-36.862,174.7769,NZAUK_2
+Mount Eden,Volcanic Landmark,Nature,Auckland,New Zealand,-36.895,174.7633,NZAUK_3
+Viaduct Harbour,Waterfront,Entertainment,Auckland,New Zealand,-36.8445,174.7579,NZAUK_4
+Britomart,Waterfront,Entertainment,Auckland,New Zealand,-36.8443,174.767,NZAUK_5
+Mission Bay,Historic Site,Cultural,Auckland,New Zealand,-36.8475,174.8316,NZAUK_6
+Kelly Tarlton's Sea Life Aquarium,Aquarium,Entertainment,Auckland,New Zealand,-36.8531,174.8506,NZAUK_7
