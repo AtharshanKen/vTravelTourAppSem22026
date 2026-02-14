@@ -1,0 +1,21 @@
+FROM python:3.12
+
+WORKDIR /app
+
+# Avoid pip spawning threads for progress (your earlier "can't start new thread")
+ENV PIP_PROGRESS_BAR=off
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Copy only dependency file first for cache
+COPY pyproject.toml ./
+
+# Install dependencies listed in pyproject.toml (no uv sync, no heredoc)
+RUN python -c "import tomllib, pathlib; d=tomllib.loads(pathlib.Path('pyproject.toml').read_text('utf-8')); print('\n'.join(d.get('project', {}).get('dependencies', [])))" > /tmp/req.txt \
+ && python -m pip install --no-cache-dir --progress-bar off -r /tmp/req.txt \
+ && rm -f /tmp/req.txt
+
+# Now copy app code
+COPY . .
+
+EXPOSE 8000
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
