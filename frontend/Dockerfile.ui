@@ -1,0 +1,14 @@
+FROM python:3.12
+
+WORKDIR /app
+
+ENV PIP_PROGRESS_BAR=off
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+
+COPY requirements.txt ./
+RUN python -m pip install --no-cache-dir --progress-bar off -r requirements.txt
+
+COPY . .
+
+EXPOSE 8501
+CMD ["streamlit", "run", "app.py", "--server.address=0.0.0.0", "--server.port=8501"]
