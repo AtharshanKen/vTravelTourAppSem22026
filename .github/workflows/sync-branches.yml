@@ -1,0 +1,32 @@
+name: Sync frontend/backend branches from main
+
+on:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Split & push frontend branch
+        run: |
+          git subtree split --prefix=frontend -b split-frontend
+          git push origin split-frontend:frontend --force
+
+      - name: Split & push backend branch
+        run: |
+          git subtree split --prefix=backend -b split-backend
+          git push origin split-backend:backend --force
