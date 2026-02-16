@@ -2,7 +2,7 @@ FROM python:3.12
 
 WORKDIR /app
 
-# Avoid pip spawning threads for progress (your earlier "can't start new thread")
+# Avoid pip spawning threads for progress
 ENV PIP_PROGRESS_BAR=off
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 
