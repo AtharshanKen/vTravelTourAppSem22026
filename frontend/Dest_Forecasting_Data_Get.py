@@ -4,7 +4,9 @@ from datetime import date
 import requests
 import os
 
-API_URL = os.getenv("API_URL", "http://localhost:8000")
+API_URL = os.environ.get("BACK_END_CONN")
+if not API_URL:
+    API_URL = os.getenv("API_URL", "http://localhost:8000")
 # # Model Exc File
 # from arima_model import ARIMA_MD 
 # from knn_model import KNN_MD
@@ -66,7 +68,7 @@ def Dest_Forecastig_Data_Get(): # Get users destination data once orgin and data
         # RC = KNN_MD(NEwR,dfs_comb,MetaData['Location_ID']) # Get recommended areas with less crowd
         RC = requests.post(f"{API_URL}/Recommendation",json ={
             "NewR":NEwR,
-            "main":date_conv_to(dfs_comb,['Date']),
+            # "main":date_conv_to(dfs_comb,['Date']),
             "loc":MetaData['Location_ID']
         }).json()
         RC = pd.DataFrame([RC])
