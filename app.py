@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as componets
 import requests
 import os
 import pandas as pd
@@ -7,6 +8,8 @@ import calendar
 from dateutil import parser
 import plotly.express as px
 import time
+import uuid
+from posthog import Posthog
 
 #^ Getting OpenAI Key---------------------------
 # from openai import OpenAI
@@ -47,7 +50,7 @@ st.set_page_config(
     layout="wide"
 )
 
-#^ BACKGROUND STYLE---------------------------- 
+#^ BACKGROUND STYLE----------------------------
 page_bg_img = '''
 <style>
 [data-testid="stAppViewContainer"] {
@@ -59,6 +62,35 @@ page_bg_img = '''
 </style>'''
 st.markdown(page_bg_img, unsafe_allow_html=True)
 
+#^ Setting up PostHog----------------------
+# Generate an anonymous ID once per session  
+if 'anon_id' not in st.session_state:  
+    st.session_state['anon_id'] = str(uuid.uuid4())
+PHG_API = os.environ.get("PHG_API")
+if not PHG_API:
+    PHG_API = st.secrets["PHG_API"]
+PHG_HST = os.environ.get("PHG_HST")
+if not PHG_HST:
+    PHG_HST = st.secrets["PHG_HST"]
+posthog = Posthog(
+    project_api_key=PHG_API,
+    host=PHG_HST
+)
+# Use the same anonymous ID for all events in this session  
+posthog.capture(  
+    distinct_id=st.session_state['anon_id'],  
+    event='$pageview',  
+    properties={  
+        '$pathname': '/app',  # The page path  
+    }  
+) 
+# psthg_html ='''
+# <script>
+#/     !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+#     posthog.init('P1',{api_host:'P2', defaults:'2026-01-30'})
+# </script>'''
+# componets.html(html=psthg_html.replace('P1',PHG_API).replace('P2',PHG_HST),height=0)
+#
 #^ Data convert from Backend------------------- 
 def date_conv_from(df:pd.DataFrame,dates:list) -> pd.DataFrame:
     for cn in dates:
@@ -235,7 +267,25 @@ with midR[1]:
                         index=None,
                         placeholder="Select...",
                         key="sel_locN")
-        if sel_locN != None: Dest_Forecastig_Data_Get()
+        if sel_locN != None:
+             # Capture event for anonymous user   
+            posthog.capture(  
+                distinct_id=st.session_state['anon_id'],  
+                event='user_input_submitted',  
+                properties={ 
+                    'Origin': sel_org,
+                    'Arrival_Date': sel_Arv_dte,
+                    'Attraction_Category':sel_att_cat,
+                    'Attraction_Type':sel_att_type,
+                    'Crowd_Tolerance':sel_crowd,
+                    'Temp_Preference':sel_temp,
+                    'Destination':sel_locN,
+                    '$process_person_profile': False , # Don't create person profile (cheaper)  
+                    'environment': os.getenv('STREAMLIT_ENV', 'Development')  
+                }  
+            )  
+            posthog.flush() # end capture before page refresh
+            Dest_Forecastig_Data_Get()
 
 with midR[2]:
     # Update figure with new data if Orgin,Avr Time,Dest have been selected
