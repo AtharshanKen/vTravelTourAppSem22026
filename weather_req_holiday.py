@@ -38,7 +38,7 @@ def Weather_Requester(lat:float,long:float) -> pd.DataFrame:
     params = {
         "latitude": lat,
         "longitude": long,
-        "forecast_days": 180,
+        "forecast_days": 217,
         "timezone": "auto",
         "daily": ["temperature_2m_mean", "wind_gusts_10m_mean", "relative_humidity_2m_mean", "precipitation_sum"]
     }

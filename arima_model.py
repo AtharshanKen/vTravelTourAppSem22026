@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import pickle
 from datetime import timedelta,datetime
 
@@ -18,7 +19,7 @@ def ARIMA_MD(loc_id:str,lat:float,long:float) -> pd.DataFrame:
     h = Holidayer(w,Cabrv.get(loc_id.split('_')[0])) # Add in the holiday data
     h = h.set_index('Date').asfreq('D').interpolate(method='linear') # numeric only
     
-    fc = pd.DataFrame(Ar_model.get_forecast(exog=h,steps=len(h)).predicted_mean)
+    fc = pd.DataFrame(np.expm1(Ar_model.get_forecast(exog=h,steps=len(h)).predicted_mean))
     fc = fc.reset_index().rename(columns={
         'index':'Date',
         'predicted_mean':'PedsSen_Count'})
