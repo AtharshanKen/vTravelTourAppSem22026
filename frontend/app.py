@@ -11,6 +11,56 @@ import time
 import uuid
 from posthog import Posthog
 
+#^ PAGE CONFIGURATION---------------------------- 
+st.set_page_config(
+    page_title="Start Your Travel Journey", 
+    page_icon="🌍", 
+    layout="wide"
+)
+
+#^ BACKGROUND STYLE AND CSS----------------------------
+page_bg_img = '''
+<style>
+[data-testid="stAppViewContainer"] {
+    background-image: url('https://images.unsplash.com/photo-1517760444937-f6397edcbbcd');
+    background-size: cover;
+    background-attachment: fixed;
+}
+[data-testid="stHeader"] {background: rgba(0,0,0,0);}
+</style>'''
+st.markdown(page_bg_img, unsafe_allow_html=True)
+
+st.markdown("""
+    <style>
+        .poi-recbox {
+            background-color: rgba(131, 131, 131, 0.50);
+            padding: 15px;
+            border-radius: 15px;
+            height: auto;
+            font-size:25px;
+        }
+        .poi-statO {
+            font-size:20px;
+        }
+        .poi-statI {
+            font-size:18px;
+        }
+        .scrollable-divMnthFC{
+            overflow: auto;
+            height: 450px;
+            white-space: nowrap;
+        }
+        .scrollable-divLang{
+            overflow-y: auto;
+            height: 650px;
+        }
+        .stSpinner > div > div > div {
+            font-size: 24px;
+            color: #18c9d6;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
 #^ Getting OpenAI Key---------------------------
 # from openai import OpenAI
 # #Set key from secrets 
@@ -42,25 +92,6 @@ with st.spinner("Connecting to service....."):
         if tr == 4:
             st.error("Backend service not avaiable at this time")
             st.stop()
-
-#^ PAGE CONFIGURATION---------------------------- 
-st.set_page_config(
-    page_title="Start Your Travel Journey", 
-    page_icon="🌍", 
-    layout="wide"
-)
-
-#^ BACKGROUND STYLE----------------------------
-page_bg_img = '''
-<style>
-[data-testid="stAppViewContainer"] {
-    background-image: url('https://images.unsplash.com/photo-1517760444937-f6397edcbbcd');
-    background-size: cover;
-    background-attachment: fixed;
-}
-[data-testid="stHeader"] {background: rgba(0,0,0,0);}
-</style>'''
-st.markdown(page_bg_img, unsafe_allow_html=True)
 
 #^ Setting up PostHog----------------------
 # Generate an anonymous ID once per session  
@@ -118,10 +149,10 @@ if "dfs_main" not in st.session_state and "flight_main" not in st.session_state:
 # if "messages" not in st.session_state:# Initialize chat history
 #     st.session_state.messages = []
 # --- SUGGESTIONS & ALT RECOMMENDATIONS TEXT ---
-if "suggest" not in st.session_state:
-    st.session_state["suggest"] = []
-if "recommend" not in st.session_state:
-    st.session_state["recommend"] = []
+# if "suggest" not in st.session_state:
+#     st.session_state["suggest"] = []
+# if "recommend" not in st.session_state:
+#     st.session_state["recommend"] = []
 # --- HOUSING FORECAST & RECOMMEND & FLIGHT DATA ---
 if 'FC_sel_Dest' not in st.session_state:
     st.session_state['FC_sel_Dest'] = pd.DataFrame()
@@ -134,6 +165,9 @@ if 'Flght_alt_Dest' not in st.session_state:
 # --- HOUSING USER SELECTIONS ---
 if 'user_sel' not in st.session_state:
     st.session_state['user_sel'] = [None,None,None,None,None,None]
+# --- USER INPUT LANG
+if 'user_input' not in st.session_state:
+    st.session_state['user_input'] = "English"
 # ---- SESSION STATE INIT ----
 for k in ["sel_att_cat","sel_att_type","sel_org","sel_Arv_dte","sel_crowd","sel_temp","sel_locN"]:
     if k not in st.session_state:
@@ -157,34 +191,6 @@ uppR = st.columns([O_W,7,O_W])
 midR = st.columns([O_W,3,4,O_W],gap='medium')
 lowR = st.columns([O_W,2,2.5,2.5,O_W],gap='small')
 
-#^ CSS-----------------------------------------
-st.markdown("""
-    <style>
-        .poi-recbox {
-            background-color: rgba(131, 131, 131, 0.50);
-            padding: 15px;
-            border-radius: 15px;
-            height: auto;
-            font-size:25px;
-        }
-        .poi-statO {
-            font-size:20px;
-        }
-        .poi-statI {
-            font-size:18px;
-        }
-        .scrollable-divMnthFC{
-            overflow: auto;
-            height: 450px;
-            white-space: nowrap;
-        }
-        .scrollable-divLang{
-            overflow-y: auto;
-            height: 650px;
-        }
-    </style>
-    """, unsafe_allow_html=True)
-
 #* ---------------------------- ROW 1: TITLE
 with uppR[1]:
     Header = st.columns([4,7,4])
@@ -204,7 +210,7 @@ st.divider()
 
 #* ---------------------------- ROW 2: OPTIONS & LOC EDA
 with midR[1]:
-    ops = st.columns([1]) + st.columns([1,1]) + st.columns([1,1]) + st.columns([1,1,1])
+    ops = st.columns([1]) + st.columns([1,1,1]) + st.columns([1,1]) + st.columns([1,1,1])
     with ops[0]:
         st.subheader("Itineraries")
 
@@ -215,8 +221,30 @@ with midR[1]:
                             placeholder="Select...",
                             key="sel_org"
                             ,on_change=update_user_sel)
-
     with ops[2]:
+        user_input = st.text_input("Language Translator", help="Type in Langauge to translate Suggestions and Recommendations to, Currency will also change"
+                               ,placeholder=f"Type what language to tranlate to",
+                               key="user_input",
+                               on_change=update_user_sel)
+        if user_input.isalnum():
+            user_input = ""
+        if user_input == "": user_input="English"
+        # if st.session_state['sel_org'] != None and st.session_state['sel_Arv_dte'] != None and st.session_state['sel_locN'] != None:
+        #     if user_input != "":
+        #         payload = {"role":"user",
+        #                 "content":f"Translate just the non html of this "+
+        #                                         f"{''.join(st.session_state['suggest'])}{''.join(st.session_state['recommend'])} into {user_input}, "+
+        #                                         "and output only the translated text following the html format"}
+        #         resp = requests.post(f"{API_URL}/OPENAI",json=payload).json()
+                # resp = client.chat.completions.create(
+                #     model="gpt-4o-mini",
+                #     messages=[
+                #         {"role":"user","content":f"Translate just the non html of this "+
+                #                                 f"{''.join(st.session_state['suggest'])}{''.join(st.session_state['recommend'])} into {user_input}, "+
+                #                                 "and output only the translated text following the html format"}
+                #     ]
+                # )
+    with ops[3]:
         sel_Arv_dte =  st.date_input(
             "Select Travel Arrival Date",
             min_value=date.today(),
@@ -225,7 +253,7 @@ with midR[1]:
             key="sel_Arv_dte"
             ,on_change=update_user_sel)
 
-    with ops[3]:
+    with ops[4]:
         AttCatL = st.session_state["dfs_main"]['Attraction_Category'].unique().tolist()
         sel_att_cat = st.selectbox("Choose Attraction Category:",
                                 AttCatL,
@@ -234,7 +262,7 @@ with midR[1]:
                                 placeholder="Select...",
                                 on_change=update_user_sel)
 
-    with ops[4]:
+    with ops[5]:
         att_type_list = st.session_state["dfs_main"][st.session_state["dfs_main"]['Attraction_Category'] == sel_att_cat]['Type_of_Attraction'].unique().tolist() if sel_att_cat else []
         sel_att_type = st.selectbox("Choose Attraction Type:",
                                 att_type_list,
@@ -244,7 +272,7 @@ with midR[1]:
                                 key="sel_att_type"
                                 ,on_change=update_user_sel)
 
-    with ops[5]:
+    with ops[6]:
         sel_crowd = st.selectbox("Choose Crowd level:",
                         ['LOW','MEDIUM','HIGH'],
                         index=None,
@@ -252,7 +280,7 @@ with midR[1]:
                         key="sel_crowd"
                         ,on_change=update_user_sel)
 
-    with ops[6]:
+    with ops[7]:
         sel_temp = st.selectbox("Choose Temp level:",
                         ['LOW','MEDIUM','HIGH'],
                         index=None,
@@ -260,7 +288,7 @@ with midR[1]:
                         key="sel_temp"
                         ,on_change=update_user_sel)
     
-    with ops[7]:
+    with ops[8]:
         locNL = pois['Location_Name'].unique().tolist()
         sel_locN = st.selectbox("Choose a Destination:",
                         locNL,
@@ -374,13 +402,55 @@ with lowR[2]: # Sueggestions
                 """<p class='poi-statO'>No Flights Path For Other Dates</p>\n"""
             )
 
+        payload = {"content":
+        f"Translate only the user-facing English text in this HTML file into {st.session_state['user_input'] }.\n"+
+        f"Convert any currency found in the html to the currency linked to this city origin of {st.session_state['sel_org'] }.\n"+ 
+        f"Default to CAD for currency in the html if currency failed to convert in previous task and place a 'Currency in CAD' followed by 'could not find Origin currency', if city Origin of {st.session_state['sel_org']} not in Canada, at the bottom of the html.\n"+ 
+        "Default to English language if translating html text failed.\n\n"+
+
+        "STRICT RULES:\n"+
+        "- Preserve all HTML structure exactly.\n"+
+        "- Do NOT modify tags, attributes, IDs, class names, JavaScript, CSS, or variables.\n"+
+        "- Do NOT translate text inside <script>, <style>, meta tags, or comments.\n"+
+        "- Maintain spacing and formatting.\n"+
+        "- Any Currency has ',' placed in correct places.\n"+
+        "- Any number in front of people has ',' placed in correct places.\n"+
+        "- Only translate text that is rendered visibly in the browser.\n\n"+
+
+        "OUTPUT FORMAT RULES (CRITICAL):\n"+
+        "- Return ONLY raw HTML.\n"+
+        "- Do NOT wrap the response in triple backticks.\n"+
+        "- Do NOT add ```html.\n"+
+        "- Do NOT add explanations.\n"+
+        "- Do NOT add comments.\n"+
+        "- Do NOT add Python formatting like [html ''' ... '''].\n"+
+        "- The response must start with the first HTML tag and end with the last HTML tag.\n\n"+
+
+        "Return the complete modified HTML.\n\n"+
+
+        "HTML:\n"+
+        f"{''.join(StateBuilder)}"}
+        with st.spinner("Connecting to OpenAI....."):
+            for tr in range(5):
+                try:
+                    resp = requests.post(f"{API_URL}/OPENAI",json=payload, timeout=10)
+                    if resp.status_code == 200:
+                        break
+                except:
+                    time.sleep(1)
+                if tr == 4:
+                    st.error("OpenAI service not avaiable at this time")
+                    st.stop()
+
+        # resp = requests.post(f"{API_URL}/OPENAI",json=payload).json()
+
         st.markdown(f"""
             <div class='poi-recbox'>
-                    {''.join(StateBuilder)}
+                    {resp.json()['resp']}
             </div>
             """, unsafe_allow_html=True)
         
-        st.session_state['suggest'] = StateBuilder # Save in session for OpenAI to translate to user
+        # st.session_state['suggest'] = StateBuilder # Save in session for OpenAI to translate to user
 
     else: # Empty div when one of the itinerary selections is deselected
         st.markdown(f"""
@@ -388,7 +458,7 @@ with lowR[2]: # Sueggestions
             </div> 
             """, unsafe_allow_html=True)
         
-        st.session_state['suggest'] = [] # Reset for new session info to be saved when user deselects itinerary
+        # st.session_state['suggest'] = [] # Reset for new session info to be saved when user deselects itinerary
 
 with lowR[3]:# Recmmmendation
     st.subheader("Alternative Destination")
@@ -400,14 +470,55 @@ with lowR[3]:# Recmmmendation
 
         StateBuilder2.append(f"""<p class='poi-statO'>{RCArv['Location_Name'].loc[0]}, {RCArv['Country'].loc[0]}, {RCArv['City'].loc[0]} with past historical crowd numbers 
                             lower than current selected, one of them being {int(RCArv['PedsSen_Count'].loc[0])} people<br>You could consider traveling to here during {RCArv['Date'].loc[0].month}/{RCArv["Date"].loc[0].day}</p>""")
-       
+        payload = {"content":
+        f"Translate only the user-facing English text in this HTML file into {st.session_state['user_input'] }.\n"+
+        f"Convert any currency found in the html to the currency linked to this city origin of {st.session_state['sel_org'] }.\n"+ 
+        f"Default to CAD for currency in the html if currency failed to convert in previous task and place a 'Currency in CAD' followed by 'could not find Origin currency', if city Origin of {st.session_state['sel_org']} not in Canada, at the bottom of the html.\n"+ 
+        "Default to English language if translating html text failed.\n\n"+
+
+        "STRICT RULES:\n"+
+        "- Preserve all HTML structure exactly.\n"+
+        "- Do NOT modify tags, attributes, IDs, class names, JavaScript, CSS, or variables.\n"+
+        "- Do NOT translate text inside <script>, <style>, meta tags, or comments.\n"+
+        "- Maintain spacing and formatting.\n"+
+        "- Any Currency has ',' placed in correct places.\n"+
+        "- Any number in front of people has ',' placed in correct places.\n"+
+        "- Only translate text that is rendered visibly in the browser.\n\n"+
+
+        "OUTPUT FORMAT RULES (CRITICAL):\n"+
+        "- Return ONLY raw HTML.\n"+
+        "- Do NOT wrap the response in triple backticks.\n"+
+        "- Do NOT add ```html.\n"+
+        "- Do NOT add explanations.\n"+
+        "- Do NOT add comments.\n"+
+        "- Do NOT add Python formatting like [html ''' ... '''].\n"+
+        "- The response must start with the first HTML tag and end with the last HTML tag.\n\n"+
+
+        "Return the complete modified HTML.\n\n"+
+
+        "HTML:\n\n"+
+        f"{''.join(StateBuilder2)}"}
+        with st.spinner("Connecting to OpenAI....."):
+            for tr in range(5):
+                try:
+                    resp = requests.post(f"{API_URL}/OPENAI",json=payload, timeout=10)
+                    if resp.status_code == 200:
+                        break
+                except:
+                    time.sleep(1)
+                if tr == 4:
+                    st.error("OpenAI service not avaiable at this time")
+                    st.stop()
+
+        # resp = requests.post(f"{API_URL}/OPENAI",json=payload).json()
+
         st.markdown(f"""
             <div class='poi-recbox'>
-                    {''.join(StateBuilder2)}
+                    {resp.json()['resp']}
             </div>
             """, unsafe_allow_html=True)
         
-        st.session_state['recommend'] = StateBuilder2 # Save in session for OpenAI to translate to user
+        # st.session_state['recommend'] = StateBuilder2 # Save in session for OpenAI to translate to user
     
     else: # Empty div when one of the itinerary selections is deselected
         st.markdown(f"""
@@ -415,8 +526,42 @@ with lowR[3]:# Recmmmendation
             </div>
             """, unsafe_allow_html=True)
         
-        st.session_state['recommend'] = [] # Reset for new session info to be saved when user deselects itinerary
+        # st.session_state['recommend'] = [] # Reset for new session info to be saved when user deselects itinerary
     
+    # st.subheader("Month Forcast Numbers")
+    # if st.session_state['sel_org'] != None and st.session_state['sel_Arv_dte'] != None and st.session_state['sel_locN'] != None:
+    #     dts_sel = st.session_state['sel_Arv_dte']
+    #     num_days = calendar.monthrange(dts_sel.year, dts_sel.month)[1]
+    #     start_dte = datetime(dts_sel.year,dts_sel.month,1).date()
+    #     end_dte = datetime(dts_sel.year,dts_sel.month,num_days).date()
+    #     month_fc = st.session_state['FC_sel_Dest'][(st.session_state['FC_sel_Dest']['Date'] >= start_dte) & (st.session_state['FC_sel_Dest']['Date'] <= end_dte)]
+    #     month_fc = month_fc.drop(columns=['Is_Holiday'])
+    #     month_fc = month_fc.rename(columns={
+    #         'Weather_Temperature':'Temp',
+    #         'Weather_Wind_Gust':'Gust',
+    #         'Weather_Relative_Humidity':'Rel Hum',
+    #         'Weather_Precipitation':'Precp',
+    #         'PedsSen_Count':'Daily Crowd'
+    #     })
+    #     month_fc = month_fc.loc[:,['Date','Daily Crowd','Temp','Gust','Rel Hum','Precp']]
+    #     st.markdown(f"""
+    #         <div class='poi-recbox scrollable-divMnthFC'>
+    #             {month_fc.to_html(formatters={'Daily Crowd':'{:,.0f}'.format,
+    #                                            'Temp':'{:,.2f}'.format,
+    #                                            'Gust':'{:,.2f}'.format,
+    #                                            'Rel Hum':'{:,.2f}'.format,
+    #                                            'Precp':'{:,.2f}'.format
+    #                                         }, index=False)}
+    #         </div>
+    #         """, unsafe_allow_html=True)
+    
+    # else:
+    #     st.markdown(f"""
+    #         <div class='poi-recbox'>
+    #         </div>
+    #         """, unsafe_allow_html=True)
+
+with lowR[1]:
     st.subheader("Month Forcast Numbers")
     if st.session_state['sel_org'] != None and st.session_state['sel_Arv_dte'] != None and st.session_state['sel_locN'] != None:
         dts_sel = st.session_state['sel_Arv_dte']
@@ -443,40 +588,38 @@ with lowR[3]:# Recmmmendation
                                             }, index=False)}
             </div>
             """, unsafe_allow_html=True)
-    
+        
     else:
         st.markdown(f"""
             <div class='poi-recbox'>
             </div>
             """, unsafe_allow_html=True)
-
-with lowR[1]:
-    st.subheader("Language Translator")
-    user_input = ""
-    language_list = ["English", "French", "Spanish", "German", "Tamil", "Hindi", "Chinese"]
-    user_input = st.text_area("-", placeholder=f"Type what language to tranlate to\n Languages like: {','.join(language_list)},.etc", label_visibility='hidden')
-    if st.session_state['sel_org'] != None and st.session_state['sel_Arv_dte'] != None and st.session_state['sel_locN'] != None:
-        if user_input != "":
-            payload = {"role":"user",
-                       "content":f"Translate just the non html of this "+
-                                            f"{''.join(st.session_state['suggest'])}{''.join(st.session_state['recommend'])} into {user_input}, "+
-                                            "and output only the translated text following the html format"}
-            resp = requests.post(f"{API_URL}/OPENAI",json=payload).json()
-            # resp = client.chat.completions.create(
-            #     model="gpt-4o-mini",
-            #     messages=[
-            #         {"role":"user","content":f"Translate just the non html of this "+
-            #                                 f"{''.join(st.session_state['suggest'])}{''.join(st.session_state['recommend'])} into {user_input}, "+
-            #                                 "and output only the translated text following the html format"}
-            #     ]
-            # )
-            st.markdown(f"""
-                <div class='poi-recbox scrollable-divLang'>
-                        {resp['resp']}
-                </div>
-                """, unsafe_allow_html=True)
-    else: # Empty div when one of the itinerary selections is deselected
-        st.markdown(f"""
-            <div class='poi-recbox'>
-            </div>
-            """, unsafe_allow_html=True)
+    # st.subheader("Language Translator")
+    # user_input = ""
+    # language_list = ["English", "French", "Spanish", "German", "Tamil", "Hindi", "Chinese"]
+    # user_input = st.text_area("-", placeholder=f"Type what language to tranlate to\n Languages like: {','.join(language_list)},.etc", label_visibility='hidden')
+    # if st.session_state['sel_org'] != None and st.session_state['sel_Arv_dte'] != None and st.session_state['sel_locN'] != None:
+    #     if user_input != "":
+    #         payload = {"role":"user",
+    #                    "content":f"Translate just the non html of this "+
+    #                                         f"{''.join(st.session_state['suggest'])}{''.join(st.session_state['recommend'])} into {user_input}, "+
+    #                                         "and output only the translated text following the html format"}
+    #         resp = requests.post(f"{API_URL}/OPENAI",json=payload).json()
+    #         # resp = client.chat.completions.create(
+    #         #     model="gpt-4o-mini",
+    #         #     messages=[
+    #         #         {"role":"user","content":f"Translate just the non html of this "+
+    #         #                                 f"{''.join(st.session_state['suggest'])}{''.join(st.session_state['recommend'])} into {user_input}, "+
+    #         #                                 "and output only the translated text following the html format"}
+    #         #     ]
+    #         # )
+    #         st.markdown(f"""
+    #             <div class='poi-recbox scrollable-divLang'>
+    #                     {resp['resp']}
+    #             </div>
+    #             """, unsafe_allow_html=True)
+    # else: # Empty div when one of the itinerary selections is deselected
+    #     st.markdown(f"""
+    #         <div class='poi-recbox'>
+    #         </div>
+    #         """, unsafe_allow_html=True)
