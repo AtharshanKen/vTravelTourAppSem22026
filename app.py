@@ -215,12 +215,16 @@ with midR[1]:
         st.subheader("Itineraries")
 
     with ops[1]:
+        OriginList = st.session_state["flight_main"].drop_duplicates(subset=['Country_dp','City_dp'])[['Country_dp','City_dp']]
+        # print(OriginList.values.tolist())
+        # st.session_state["flight_main"]['City_dp'].unique().tolist()
         sel_org = st.selectbox("Choose an Orgin:",
-                            st.session_state["flight_main"]['City_dp'].unique().tolist(),
+                            OriginList.values.tolist(),
                             index=None,
                             placeholder="Select...",
                             key="sel_org"
                             ,on_change=update_user_sel)
+
     with ops[2]:
         user_input = st.text_input("Language Translator", help="Type in Langauge to translate Suggestions and Recommendations to, Currency will also change"
                                ,placeholder=f"Type what language to tranlate to",
@@ -301,7 +305,7 @@ with midR[1]:
                 distinct_id=st.session_state['anon_id'],  
                 event='user_input_submitted',  
                 properties={ 
-                    'Origin': sel_org,
+                    'Origin': ", ".join(sel_org),
                     'Arrival_Date': sel_Arv_dte,
                     'Attraction_Category':sel_att_cat,
                     'Attraction_Type':sel_att_type,
@@ -373,7 +377,7 @@ with lowR[2]: # Sueggestions
         StateBuilder.append(f"""<p class='poi-statO'>Forecast Crowd: {int(FCArv['PedsSen_Count'].loc[0])} people<br></p>""")
 
         if len(FLArv) > 0: 
-            OthFlArv = '<br>'.join([f'{tp['apt_name_dp']} -- {tp['apt_time_dt_dp']} --> {tp['apt_name_ds']} -- {tp['apt_time_dt_ds']}  >>> ${tp['price']}' for i,tp in FLArv.nsmallest(n=20, columns='price').iterrows()][:3])
+            OthFlArv = '<br>'.join([f'{tp['apt_name_dp']} -- {tp['apt_time_dt_dp']} --> {tp['apt_name_ds']} -- {tp['apt_time_dt_ds']}  >>> &dollar;{tp['price']}' for i,tp in FLArv.nsmallest(n=20, columns='price').iterrows()][:3])
             StateBuilder.append(
                 f"""<p class='poi-statO'>Arvival Date Flight Paths <br> {OthFlArv}</p>"""
             )
@@ -393,7 +397,7 @@ with lowR[2]: # Sueggestions
             )
 
         if len(FLlow) > 0:
-            OthFllow = '<br>'.join([f'{tp['apt_name_dp']} -- {tp['apt_time_dt_dp']} --><br> {tp['apt_name_ds']} -- {tp['apt_time_dt_ds']} >>> ${tp['price']}' for i,tp in FLlow.nsmallest(n=20, columns='price').iterrows()][:3])
+            OthFllow = '<br>'.join([f'{tp['apt_name_dp']} -- {tp['apt_time_dt_dp']} --><br> {tp['apt_name_ds']} -- {tp['apt_time_dt_ds']} >>> &dollar;{tp['price']}' for i,tp in FLlow.nsmallest(n=20, columns='price').iterrows()][:3])
             StateBuilder.append(
                 f"""<p class='poi-statO'>Other Dates Flight Paths <br> {OthFllow}</p>"""
             )
@@ -403,32 +407,46 @@ with lowR[2]: # Sueggestions
             )
 
         payload = {"content":
-        f"Translate only the user-facing English text in this HTML file into {st.session_state['user_input'] }.\n"+
-        f"Convert any currency found in the html to the currency linked to this city origin of {st.session_state['sel_org'] }.\n"+ 
-        f"Default to CAD for currency in the html if currency failed to convert in previous task and place a 'Currency in CAD' followed by 'could not find Origin currency', if city Origin of {st.session_state['sel_org']} not in Canada, at the bottom of the html.\n"+ 
-        "Default to English language if translating html text failed.\n\n"+
+        "You are an HTML editor, not a chat assistant.\n"+
+        "Return only the final edited raw HTML.\n"+
+        "Do not explain anything before or after the HTML.\n"+
+        "Do not include citations, links, source names, or notes outside the HTML.\n"+
+        f"Target-Language is {st.session_state['user_input']}.\n"+
+        f"Target-Country is {st.session_state['sel_org'][0]}.\n"+
+        f"Target-Country has the city of {st.session_state['sel_org'][1]}.\n\n"+
 
-        "STRICT RULES:\n"+
-        "- Preserve all HTML structure exactly.\n"+
-        "- Do NOT modify tags, attributes, IDs, class names, JavaScript, CSS, or variables.\n"+
-        "- Do NOT translate text inside <script>, <style>, meta tags, or comments.\n"+
-        "- Maintain spacing and formatting.\n"+
-        "- Any Currency has ',' placed in correct places.\n"+
-        "- Any number in front of people has ',' placed in correct places.\n"+
-        "- Only translate text that is rendered visibly in the browser.\n\n"+
+        "TASKS:\n"+
+        "1. Determine the Target-Country currency.\n"+
+        "2. Determine the current currency exchange-rate between Canada and Target-Country.\n"+
+        "3. If Target-Country not Canada then convert any currency value with &dollar; in HTML body by multiplying it with exchange-rate.\n"+
+        "4. Translate only visible user-facing English text into Target-Language.\n"+
+        "5. If Target-Country not Canada then append a visible line at the bottom of the HTML body showing the Target-Country currency label, and Canada to Target-Country exchange-rate.\n\n"+
 
-        "OUTPUT FORMAT RULES (CRITICAL):\n"+
+        "STRICT CURRENCY RULES:\n"+
+        "- Treat every visible &dollar; amount as CAD.\n"+
+        "- Convert only visible monetary values in the HTML body.\n\n"+
+
+        "STRICT HTML RULES:\n"+
+        "- Preserve the HTML structure exactly.\n"+
+        "- Do NOT modify tags, attributes, IDs, class names, JavaScript, CSS, or template variables.\n"+
+        "- Do NOT translate text inside <script>, <style>, <meta>, <head>, or HTML comments.\n"+
+        "- Translate only text visibly rendered in the browser.\n"+
+        "- Maintain whitespace and formatting as much as possible.\n\n"+
+
+        "STRICT OUTPUT RULES:\n"+
         "- Return ONLY raw HTML.\n"+
-        "- Do NOT wrap the response in triple backticks.\n"+
-        "- Do NOT add ```html.\n"+
-        "- Do NOT add explanations.\n"+
-        "- Do NOT add comments.\n"+
-        "- Do NOT add Python formatting like [html ''' ... '''].\n"+
-        "- The response must start with the first HTML tag and end with the last HTML tag.\n\n"+
+        "- Do NOT output any explanation.\n"+
+        "- Do NOT output any preface.\n"+
+        "- Do NOT output any summary.\n"+
+        "- Do NOT output citations.\n"+
+        "- Do NOT output URLs.\n"+
+        "- Do NOT output source names.\n"+
+        "- Do NOT say 'Here is the updated HTML'.\n"+
+        "- Do NOT use markdown.\n"+
+        "- Do NOT use triple backticks.\n"+
+        "- The response must begin with the first HTML tag and end with the last HTML tag.\n\n"+
 
-        "Return the complete modified HTML.\n\n"+
-
-        "HTML:\n"+
+        "HTML TO EDIT:\n"+
         f"{''.join(StateBuilder)}"}
         with st.spinner("Connecting to OpenAI....."):
             for tr in range(5):
@@ -471,32 +489,36 @@ with lowR[3]:# Recmmmendation
         StateBuilder2.append(f"""<p class='poi-statO'>{RCArv['Location_Name'].loc[0]}, {RCArv['Country'].loc[0]}, {RCArv['City'].loc[0]} with past historical crowd numbers 
                             lower than current selected, one of them being {int(RCArv['PedsSen_Count'].loc[0])} people<br>You could consider traveling to here during {RCArv['Date'].loc[0].month}/{RCArv["Date"].loc[0].day}</p>""")
         payload = {"content":
-        f"Translate only the user-facing English text in this HTML file into {st.session_state['user_input'] }.\n"+
-        f"Convert any currency found in the html to the currency linked to this city origin of {st.session_state['sel_org'] }.\n"+ 
-        f"Default to CAD for currency in the html if currency failed to convert in previous task and place a 'Currency in CAD' followed by 'could not find Origin currency', if city Origin of {st.session_state['sel_org']} not in Canada, at the bottom of the html.\n"+ 
-        "Default to English language if translating html text failed.\n\n"+
+        "You are an HTML editor, not a chat assistant.\n"+
+        "Return only the final edited raw HTML.\n"+
+        "Do not explain anything before or after the HTML.\n"+
+        "Do not include citations, links, source names, or notes outside the HTML.\n"+
+        f"Target-Language is {st.session_state['user_input']}.\n\n"+
 
-        "STRICT RULES:\n"+
-        "- Preserve all HTML structure exactly.\n"+
-        "- Do NOT modify tags, attributes, IDs, class names, JavaScript, CSS, or variables.\n"+
-        "- Do NOT translate text inside <script>, <style>, meta tags, or comments.\n"+
-        "- Maintain spacing and formatting.\n"+
-        "- Any Currency has ',' placed in correct places.\n"+
-        "- Any number in front of people has ',' placed in correct places.\n"+
-        "- Only translate text that is rendered visibly in the browser.\n\n"+
+        "TASKS:\n"+
+        "1. Translate only visible user-facing English text into Target-Language.\n\n"+
 
-        "OUTPUT FORMAT RULES (CRITICAL):\n"+
+        "STRICT HTML RULES:\n"+
+        "- Preserve the HTML structure exactly.\n"+
+        "- Do NOT modify tags, attributes, IDs, class names, JavaScript, CSS, or template variables.\n"+
+        "- Do NOT translate text inside <script>, <style>, <meta>, <head>, or HTML comments.\n"+
+        "- Translate only text visibly rendered in the browser.\n"+
+        "- Maintain whitespace and formatting as much as possible.\n\n"+
+
+        "STRICT OUTPUT RULES:\n"+
         "- Return ONLY raw HTML.\n"+
-        "- Do NOT wrap the response in triple backticks.\n"+
-        "- Do NOT add ```html.\n"+
-        "- Do NOT add explanations.\n"+
-        "- Do NOT add comments.\n"+
-        "- Do NOT add Python formatting like [html ''' ... '''].\n"+
-        "- The response must start with the first HTML tag and end with the last HTML tag.\n\n"+
+        "- Do NOT output any explanation.\n"+
+        "- Do NOT output any preface.\n"+
+        "- Do NOT output any summary.\n"+
+        "- Do NOT output citations.\n"+
+        "- Do NOT output URLs.\n"+
+        "- Do NOT output source names.\n"+
+        "- Do NOT say 'Here is the updated HTML'.\n"+
+        "- Do NOT use markdown.\n"+
+        "- Do NOT use triple backticks.\n"+
+        "- The response must begin with the first HTML tag and end with the last HTML tag.\n\n"+
 
-        "Return the complete modified HTML.\n\n"+
-
-        "HTML:\n\n"+
+        "HTML TO EDIT:\n"+
         f"{''.join(StateBuilder2)}"}
         with st.spinner("Connecting to OpenAI....."):
             for tr in range(5):
