@@ -41,7 +41,9 @@ def Dest_Forecastig_Data_Get(): # Get users destination data once orgin and data
         st.session_state['FC_sel_Dest'] = FC # save to sesssion state]
         
         # Filter fligth paths with FC in mind     
-        flgData1 = flights[(flights['City_dp'] == st.session_state['sel_org']) & 
+        flgData1 = flights[
+            (flights['Country_dp'] == st.session_state['sel_org'][0]) & 
+            (flights['City_dp'] == st.session_state['sel_org'][1]) & 
                           (flights['City_ds'] == MetaData['City']) & 
                           (flights['apt_time_dt_ds'] >= date.today()) & 
                           (flights['apt_time_dt_ds'] <= FC['Date'].loc[len(FC)-1])]
@@ -77,7 +79,9 @@ def Dest_Forecastig_Data_Get(): # Get users destination data once orgin and data
 
         # Filter fligth paths with RC in mind
         # print(type(flights['apt_time_dt_ds'].loc[0])) <class 'datetime.date'>
-        flgData2 = flights[(flights['City_dp'] == st.session_state['sel_org']) & 
+        flgData2 = flights[
+            (flights['Country_dp'] == st.session_state['sel_org'][0]) & 
+            (flights['City_dp'] == st.session_state['sel_org'][1]) & 
                           (flights['City_ds'] == RC['City'].loc[0]) & 
                           (flights['apt_time_dt_ds'] >= date.today()) & 
                           (flights['apt_time_dt_ds'] <= RC['Date'].loc[0])]
