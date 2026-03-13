@@ -536,7 +536,9 @@ with lowR[3]:# Recmmmendation
         "Return only the final edited raw HTML.\n"+
         "Do not explain anything before or after the HTML.\n"+
         "Do not include citations, links, source names, or notes outside the HTML.\n"+
-        f"Target-Language is {st.session_state['user_input']}.\n\n"+
+        f"Target-Language is {st.session_state['user_input']}.\n"+
+        f"Target-Country is {st.session_state['sel_org'][0]}.\n"+
+        f"Target-Country has the city of {st.session_state['sel_org'][1]}.\n\n"+
 
         "TASKS:\n"+
         "1. Translate only visible user-facing English text into Target-Language.\n\n"+
