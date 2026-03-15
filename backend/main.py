@@ -24,8 +24,9 @@ if api is None:
 client = AsyncOpenAI(api_key=api)
 
 # Model Exc File
-from arima_model import ARIMA_MD 
+# from arima_model import ARIMA_MD 
 from knn_model import KNN_MD
+from xgb_model import XGB_MD
 
 folder1 = "./datasets"
 dfs_comb = pd.DataFrame()
@@ -72,7 +73,8 @@ class FrCtReq(BaseModel):
     long:float
 @app.post("/Forecasting")
 async def forecasting(input:FrCtReq):
-    fc = ARIMA_MD(input.loc,input.lat,input.long)
+    # fc = ARIMA_MD(input.loc,input.lat,input.long)
+    fc = XGB_MD(input.loc,input.lat,input.long)
     for _,c in dfs_comb[(dfs_comb['Location_ID'] == input.loc)&(pd.to_datetime(dfs_comb['Date'],format="%Y-%m-%d").dt.year >= 2025)].reset_index(drop=True).loc[0:365,['Date','PedsSen_Count']].iterrows():
         indx = fc.index[fc['Date']==pd.Timestamp(c['Date'])].tolist()[0]
         fc.loc[indx,'PedsSen_Count'] = c['PedsSen_Count']
