@@ -4,6 +4,8 @@ import pickle
 import os
 import random
 
+from xgboost import XGBRegressor
+
 SEED = 42
 os.environ["PYTHONHASHSEED"] = str(SEED)
 np.random.seed(SEED)

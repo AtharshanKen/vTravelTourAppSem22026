@@ -75,9 +75,11 @@ class FrCtReq(BaseModel):
 async def forecasting(input:FrCtReq):
     # fc = ARIMA_MD(input.loc,input.lat,input.long)
     fc = XGB_MD(input.loc,input.lat,input.long)
-    for _,c in dfs_comb[(dfs_comb['Location_ID'] == input.loc)&(pd.to_datetime(dfs_comb['Date'],format="%Y-%m-%d").dt.year >= 2025)].reset_index(drop=True).loc[0:365,['Date','PedsSen_Count']].iterrows():
-        indx = fc.index[fc['Date']==pd.Timestamp(c['Date'])].tolist()[0]
-        fc.loc[indx,'PedsSen_Count'] = c['PedsSen_Count']
+    # print(fc)
+    # for _,c in dfs_comb[(dfs_comb['Location_ID'] == input.loc)&(pd.to_datetime(dfs_comb['Date'],format="%Y-%m-%d").dt.year >= 2025)].reset_index(drop=True).loc[0:365,['Date','PedsSen_Count']].iterrows():
+    #     print(_,c)
+    #     indx = fc.index[fc['Date']==pd.Timestamp(c['Date'])].tolist()[0]
+    #     fc.loc[indx,'PedsSen_Count'] = c['PedsSen_Count']
     return date_conv_to(fc,['Date'])
 
 class RecReq(BaseModel):
