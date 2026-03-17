@@ -58,13 +58,8 @@ def Weather_Requester(lat:float,lon:float) -> pd.DataFrame:
     url = "https://seasonal-api.open-meteo.com/v1/seasonal"
     params = {
         "latitude": lat,
- HEAD
         "longitude": lon,
         "forecast_days": FcRg,
-
-        "longitude": long,
-        "forecast_days": 217,
- 1ded37feb67c1a5ca5eb4018986bdfce4e5b6cea
         "timezone": "auto",
         "daily": ["temperature_2m_mean", "wind_gusts_10m_mean", "relative_humidity_2m_mean", "precipitation_sum"],
     }
