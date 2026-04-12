@@ -11,7 +11,8 @@ Project is an application that will guide users to lower crowded areas.
 
 Website built with Stream Lit, FastAPI, Docker, and Deployed through Heroku & Google Cloud Run and can be accessed through here:
 https://vtt-capstonesem2026-frontend-5222691be1f6.herokuapp.com/
-Incropates a CI/CD workflow for updating the frontend & backend banches automatically, allowfor updated versions to be live for Heroku & GCR.
+Project uses Post Hog to captrue metrics related to user metrics and web site metrics. 
+Incropates a CI/CD workflow for updating the frontend & backend banches automatically, allow for updated versions to be live for Heroku & GCR.
 Main docker compose file for local deployment that runs backend then frontend.  
 To run locally either fork then pull to remote or just download project:
   - Then right click in the folder within main directory of project click Git Bash
@@ -36,6 +37,7 @@ Provides:
 Currently only two city's that being NewZealand Auckland & Ireland Dublin are available.
 
 Data sources and API's:
+  - Use Post Hog for capturing any analytics from the frontend side of the application
   - Uses data from SerpAPI for future fligth paths and prices
   - Uses weather data from Open Meto Weather API for forecasting model
   - Uses OpenAI API for translating the suggestions and recommendations to specified language and currency exchanges
