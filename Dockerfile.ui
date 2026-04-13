@@ -2,12 +2,17 @@ FROM python:3.12
 
 WORKDIR /app
 
+# Avoid pip spawning threads for progress
 ENV PIP_PROGRESS_BAR=off
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 
+# Copy only dependency file first for cache
 COPY requirements.txt ./
+
+# Install dependencies listed in requirements.txt
 RUN python -m pip install --no-cache-dir --progress-bar off -r requirements.txt
 
+# Now copy app code
 COPY . .
 
 EXPOSE 8501

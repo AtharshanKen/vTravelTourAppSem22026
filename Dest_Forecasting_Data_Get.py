@@ -4,19 +4,17 @@ from datetime import date
 import requests
 import os
 
-API_URL = os.environ.get("BACK_END_CONN")
+API_URL = os.environ.get("BACK_END_CONN") # backend connection switch local/heroku
 if not API_URL:
     API_URL = os.getenv("API_URL", "http://localhost:8000")
-# # Model Exc File
-# from arima_model import ARIMA_MD 
-# from knn_model import KNN_MD
-def date_conv_to(df:pd.DataFrame,dates:list) -> list[dict]:
+
+def date_conv_to(df:pd.DataFrame,dates:list) -> list[dict]: # Json Serialization to 
     df = df.copy()
     for cn in dates:
         df[cn] = pd.to_datetime(df[cn], errors="coerce").dt.strftime("%Y-%m-%d %H:%M:%S")
     return df.to_json(orient="records")
 
-def date_conv_from(df:pd.DataFrame,dates:list) -> pd.DataFrame:
+def date_conv_from(df:pd.DataFrame,dates:list) -> pd.DataFrame: # Json Serialization from 
     for cn in dates:
         df[cn] = pd.to_datetime(df[cn], errors="coerce").dt.date
     return df
@@ -29,16 +27,15 @@ def Dest_Forecastig_Data_Get(): # Get users destination data once orgin and data
         # Grab Past Location Data from Data Set
         LocData = dfs_comb[dfs_comb['Location_Name'] == st.session_state['sel_locN']]
         
-        # Building Meta data used for KNN and ARIMA models 
+        # Building Meta data used for KNN and XGB models 
         MetaData = LocData[['Country','City','Location_ID','Location_Name','Type_of_Attraction','Attraction_Category','Latitude','Longitude']].loc[LocData.first_valid_index()]
         
-        # Get Forcast data for th enext 180 day from trim point Sept 30 2025 to 180 days later from today
-        # FC = ARIMA_MD(MetaData['Location_ID'],MetaData['Latitude'],MetaData['Longitude']) # Get Forecast for POI
+        # Get Forcast data from the beginning of the year to now + the next 217 Days from now 
         FC = requests.post(f"{API_URL}/Forecasting",json={"loc":MetaData['Location_ID'],"lat":MetaData['Latitude'],"long":MetaData['Longitude']}).json()
         FC = date_conv_from(pd.DataFrame(FC),['Date'])
-        FC['Date'] = FC['Date'].apply(lambda x : pd.Timestamp(x).date())#datetime.date(YYYY, MM, DD)
+        FC['Date'] = FC['Date'].apply(lambda x : pd.Timestamp(x).date())
         
-        st.session_state['FC_sel_Dest'] = FC # save to sesssion state]
+        st.session_state['FC_sel_Dest'] = FC # save to sesssion state
         
         # Filter fligth paths with FC in mind     
         flgData1 = flights[
@@ -66,11 +63,8 @@ def Dest_Forecastig_Data_Get(): # Get users destination data once orgin and data
                 FCr['Weather_Relative_Humidity'].iloc[0].item(),
                 FCr['Weather_Precipitation'].iloc[0].item(),
                 FCr['Is_Holiday'].iloc[0].item()]
-        # for item in NEwR: print(item,type(item))
-        # RC = KNN_MD(NEwR,dfs_comb,MetaData['Location_ID']) # Get recommended areas with less crowd
         RC = requests.post(f"{API_URL}/Recommendation",json ={
             "NewR":NEwR,
-            # "main":date_conv_to(dfs_comb,['Date']),
             "loc":MetaData['Location_ID']
         }).json()
         RC = pd.DataFrame([RC])
@@ -78,7 +72,6 @@ def Dest_Forecastig_Data_Get(): # Get users destination data once orgin and data
         st.session_state['RC_alt_Dest'] = RC # save to sesssion state
 
         # Filter fligth paths with RC in mind
-        # print(type(flights['apt_time_dt_ds'].loc[0])) <class 'datetime.date'>
         flgData2 = flights[
             (flights['Country_dp'] == st.session_state['sel_org'][0]) & 
             (flights['City_dp'] == st.session_state['sel_org'][1]) & 

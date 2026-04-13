@@ -1,12 +1,10 @@
 import streamlit as st
-# import streamlit.components.v1 as componets
 import requests
 import os
 import pandas as pd
 from datetime import date,timedelta,datetime
 import calendar
 from dateutil import parser
-# import plotly.express as px
 import time
 import uuid
 from posthog import Posthog
@@ -81,14 +79,6 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-#^ Getting OpenAI Key---------------------------
-# from openai import OpenAI
-# #Set key from secrets 
-# api = os.environ.get("OPENAI_API_KEY")
-# if api is None:
-#     api = st.secrets["OPENAI_API_KEY"]
-# client = OpenAI(api_key=api)
-
 #^ Backend Connection----------------------------
 # In Docker/Heroku point this to the backend service URL
 API_URL = os.environ.get("BACK_END_CONN")
@@ -129,13 +119,7 @@ posthog.capture(
         '$pathname': '/app',  # The page path  
     }  
 ) 
-# psthg_html ='''
-# <script>
-#/     !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
-#     posthog.init('P1',{api_host:'P2', defaults:'2026-01-30'})
-# </script>'''
-# componets.html(html=psthg_html.replace('P1',PHG_API).replace('P2',PHG_HST),height=0)
-#
+
 #^ Data convert from Backend------------------- 
 def date_conv_from(df:pd.DataFrame,dates:list) -> pd.DataFrame:
     for cn in dates:
@@ -150,23 +134,6 @@ if "dfs_main" not in st.session_state and "flight_main" not in st.session_state:
     res = [pd.DataFrame(item) for item in res]
     st.session_state["dfs_main"] = date_conv_from(res[0],['Date'])
     st.session_state["flight_main"] = date_conv_from(res[1],['apt_time_dt_ds','apt_time_dt_dp'])
-    # print(type(st.session_state["dfs_main"]['Date'].loc[0]))
-    # print(type(st.session_state["flight_main"]['apt_time_dt_ds'].loc[0]))
-    # st.session_state["dfs_main"]['Date'] = st.session_state["dfs_main"]['Date'].apply(lambda x: parser.parse(x).date())#datetime.date(YYYY, MM, DD)
-    # st.session_state["flight_main"]['apt_time_dt_ds'] = st.session_state["flight_main"]['apt_time_dt_ds'].apply(lambda x: parser.parse(x).date())
-    # st.session_state["flight_main"]['apt_time_dt_dp'] = st.session_state["flight_main"]['apt_time_dt_dp'].apply(lambda x: parser.parse(x).date())
-# print(type(st.session_state["dfs_main"]['Date'].loc[0]))
-# print(type(st.session_state["flight_main"]['apt_time_dt_ds'].loc[0]))
-# # --- OPENAI DEF MODEL ---
-# if "openai_model" not in st.session_state:
-#     st.session_state["openai_model"] = "gpt-3.5-turbo"
-# if "messages" not in st.session_state:# Initialize chat history
-#     st.session_state.messages = []
-# --- SUGGESTIONS & ALT RECOMMENDATIONS TEXT ---
-# if "suggest" not in st.session_state:
-#     st.session_state["suggest"] = []
-# if "recommend" not in st.session_state:
-#     st.session_state["recommend"] = []
 # --- HOUSING FORECAST & RECOMMEND & FLIGHT DATA ---
 if 'FC_sel_Dest' not in st.session_state:
     st.session_state['FC_sel_Dest'] = pd.DataFrame()
@@ -187,7 +154,7 @@ for k in ["sel_att_cat","sel_att_type","sel_org","sel_Arv_dte","sel_crowd","sel_
     if k not in st.session_state:
         st.session_state[k] = None
 # ---- CALLBACKS ----
-def update_user_sel():#Updating user_sel list to reflect new setting changes 
+def update_user_sel():#Updating user_sel list to reflect new itinerary changes 
     st.session_state['user_sel'][0] = st.session_state['sel_org']
     st.session_state['user_sel'][1] = st.session_state['sel_Arv_dte']
     st.session_state['user_sel'][2] = st.session_state['sel_att_cat']
@@ -207,7 +174,6 @@ lowR = st.columns([O_W,2,2.5,2.5,O_W],gap='small')
 
 #* ---------------------------- ROW 1: TITLE
 with uppR[1]:
-    # Header = st.columns([4,7,4])
     TitleDis = st.columns([5],gap='small') + st.columns([7],gap='small')
     with TitleDis[0]:
         st.markdown(f"""
@@ -229,8 +195,6 @@ with midR[1]:
 
     with ops[1]:
         OriginList = st.session_state["flight_main"].drop_duplicates(subset=['Country_dp','City_dp'])[['Country_dp','City_dp']]
-        # print(OriginList.values.tolist())
-        # st.session_state["flight_main"]['City_dp'].unique().tolist()
         sel_org = st.selectbox("Choose an Orgin:",
                             OriginList.values.tolist(),
                             index=None,
@@ -246,21 +210,7 @@ with midR[1]:
         if user_input.isalnum():
             user_input = ""
         if user_input == "": user_input="English"
-        # if st.session_state['sel_org'] != None and st.session_state['sel_Arv_dte'] != None and st.session_state['sel_locN'] != None:
-        #     if user_input != "":
-        #         payload = {"role":"user",
-        #                 "content":f"Translate just the non html of this "+
-        #                                         f"{''.join(st.session_state['suggest'])}{''.join(st.session_state['recommend'])} into {user_input}, "+
-        #                                         "and output only the translated text following the html format"}
-        #         resp = requests.post(f"{API_URL}/OPENAI",json=payload).json()
-                # resp = client.chat.completions.create(
-                #     model="gpt-4o-mini",
-                #     messages=[
-                #         {"role":"user","content":f"Translate just the non html of this "+
-                #                                 f"{''.join(st.session_state['suggest'])}{''.join(st.session_state['recommend'])} into {user_input}, "+
-                #                                 "and output only the translated text following the html format"}
-                #     ]
-                # )
+
     with ops[3]:
         sel_Arv_dte =  st.date_input(
             "Select Travel Arrival Date",
@@ -341,7 +291,7 @@ with midR[2]:
         pltdata = pd.concat([pltdata,st.session_state['FC_sel_Dest']],axis='index')[['Date','PedsSen_Count','Weather_Temperature','Weather_Wind_Gust','Weather_Relative_Humidity','Weather_Precipitation']]
         pltdata['Date'] = pltdata['Date'].apply(lambda x: pd.to_datetime(x.strftime('%Y-%m-%d')))
 
-        # Resample for monthly from daily, provides a better visual of the older + new data
+        # Resample for monthly from daily, provides a better visual of the hist + forecast data
         pltdata = pltdata.set_index('Date').resample('ME').mean().reset_index()
         pltdata = pltdata.rename(columns={
             'PedsSen_Count':'Monthly Crowd Count',
@@ -357,13 +307,6 @@ with midR[2]:
         fig.add_trace(go.Scatter(x=pltdata['Date'],y=pltdata['Monthly Wind'],name = "Wind Gust",mode='lines',line=dict(width=3),opacity=0.5,yaxis='y3'))
         fig.add_trace(go.Scatter(x=pltdata['Date'],y=pltdata['Monthly Realtive Humidity'],name = "Realtive Humidity",mode='lines',line=dict(width=3),opacity=0.5,yaxis='y4'))
         fig.add_trace(go.Bar(x=pltdata['Date'],y=pltdata['Monthly Precipitation'],name = "Precipitation",marker_color="purple",opacity=0.5,yaxis='y5'))
-        # fig = px.line(
-        #     pltdata,
-        #     x='Date',
-        #     y='Monthly Crowd Count',
-        #     title=f"{Tinfo['Location_Name'].loc[0]} — Monthly Trend ---- [{Tinfo['Country'].loc[0]}/{Tinfo['City'].loc[0]}]",
-        #     markers=True
-        # )
 
         # Adding Forecast vertical line 
         fig.add_vline(x=parser.parse('2026-01-01').timestamp()*1000, line_width=2, line_dash="dash", line_color="red", annotation_text="Forecast Start>>", annotation_position="bottom left")
@@ -383,11 +326,6 @@ with midR[2]:
         )
 
     else: # If user deselectes Orgin,Arv Time,Dest, then reset graph. 
-        # fig = px.line(
-        #             title=f"Destination-Orgin-Time not Selected",
-        #             markers=True
-        #         )
-        
         fig.add_trace(go.Scatter())
     
         fig.update_layout(title="Destination-Orgin-Time not Selected",
@@ -398,10 +336,6 @@ with midR[2]:
                         margin=dict(l=10,r=10,t=40,b=10))
         
     st.plotly_chart(fig, use_container_width=True)
-    # st.markdown(f"""<div class='poi-recbox scrollable-plot'>
-    #             {st.plotly_chart(fig, use_container_width=False)}
-    #             </div>""",unsafe_allow_html=True)
-    
 
 #* ---------------------------- ROW 3: TRANSLATOR & SUGGESTION & RECOMMENDATION & MONTH DAILY FC RESULTS
 # Below are the AI Features for Sugesting and Recommending 
@@ -503,24 +437,18 @@ with lowR[2]: # Sueggestions
                     st.error("OpenAI service not avaiable at this time")
                     st.stop()
 
-        # resp = requests.post(f"{API_URL}/OPENAI",json=payload).json()
-
         st.markdown(f"""
             <div class='poi-recbox'>
                     {resp.json()['resp']}
             </div>
             """, unsafe_allow_html=True)
         
-        # st.session_state['suggest'] = StateBuilder # Save in session for OpenAI to translate to user
-
     else: # Empty div when one of the itinerary selections is deselected
         st.markdown(f"""
             <div class='poi-recbox'>
             </div> 
             """, unsafe_allow_html=True)
         
-        # st.session_state['suggest'] = [] # Reset for new session info to be saved when user deselects itinerary
-
 with lowR[3]:# Recmmmendation
     st.subheader("Alternative Destination")
     if st.session_state['sel_org'] != None and st.session_state['sel_Arv_dte'] != None and st.session_state['sel_locN'] != None:
@@ -577,58 +505,19 @@ with lowR[3]:# Recmmmendation
                     st.error("OpenAI service not avaiable at this time")
                     st.stop()
 
-        # resp = requests.post(f"{API_URL}/OPENAI",json=payload).json()
-
         st.markdown(f"""
             <div class='poi-recbox'>
                     {resp.json()['resp']}
             </div>
             """, unsafe_allow_html=True)
-        
-        # st.session_state['recommend'] = StateBuilder2 # Save in session for OpenAI to translate to user
-    
+            
     else: # Empty div when one of the itinerary selections is deselected
         st.markdown(f"""
             <div class='poi-recbox'>
             </div>
             """, unsafe_allow_html=True)
-        
-        # st.session_state['recommend'] = [] # Reset for new session info to be saved when user deselects itinerary
-    
-    # st.subheader("Month Forcast Numbers")
-    # if st.session_state['sel_org'] != None and st.session_state['sel_Arv_dte'] != None and st.session_state['sel_locN'] != None:
-    #     dts_sel = st.session_state['sel_Arv_dte']
-    #     num_days = calendar.monthrange(dts_sel.year, dts_sel.month)[1]
-    #     start_dte = datetime(dts_sel.year,dts_sel.month,1).date()
-    #     end_dte = datetime(dts_sel.year,dts_sel.month,num_days).date()
-    #     month_fc = st.session_state['FC_sel_Dest'][(st.session_state['FC_sel_Dest']['Date'] >= start_dte) & (st.session_state['FC_sel_Dest']['Date'] <= end_dte)]
-    #     month_fc = month_fc.drop(columns=['Is_Holiday'])
-    #     month_fc = month_fc.rename(columns={
-    #         'Weather_Temperature':'Temp',
-    #         'Weather_Wind_Gust':'Gust',
-    #         'Weather_Relative_Humidity':'Rel Hum',
-    #         'Weather_Precipitation':'Precp',
-    #         'PedsSen_Count':'Daily Crowd'
-    #     })
-    #     month_fc = month_fc.loc[:,['Date','Daily Crowd','Temp','Gust','Rel Hum','Precp']]
-    #     st.markdown(f"""
-    #         <div class='poi-recbox scrollable-divMnthFC'>
-    #             {month_fc.to_html(formatters={'Daily Crowd':'{:,.0f}'.format,
-    #                                            'Temp':'{:,.2f}'.format,
-    #                                            'Gust':'{:,.2f}'.format,
-    #                                            'Rel Hum':'{:,.2f}'.format,
-    #                                            'Precp':'{:,.2f}'.format
-    #                                         }, index=False)}
-    #         </div>
-    #         """, unsafe_allow_html=True)
-    
-    # else:
-    #     st.markdown(f"""
-    #         <div class='poi-recbox'>
-    #         </div>
-    #         """, unsafe_allow_html=True)
-
-with lowR[1]:
+            
+with lowR[1]: # 30 day Forecast Table Builder for month that user's date is in
     st.subheader("Month Forcast Numbers")
     if st.session_state['sel_org'] != None and st.session_state['sel_Arv_dte'] != None and st.session_state['sel_locN'] != None:
         dts_sel = st.session_state['sel_Arv_dte']
@@ -661,32 +550,3 @@ with lowR[1]:
             <div class='poi-recbox'>
             </div>
             """, unsafe_allow_html=True)
-    # st.subheader("Language Translator")
-    # user_input = ""
-    # language_list = ["English", "French", "Spanish", "German", "Tamil", "Hindi", "Chinese"]
-    # user_input = st.text_area("-", placeholder=f"Type what language to tranlate to\n Languages like: {','.join(language_list)},.etc", label_visibility='hidden')
-    # if st.session_state['sel_org'] != None and st.session_state['sel_Arv_dte'] != None and st.session_state['sel_locN'] != None:
-    #     if user_input != "":
-    #         payload = {"role":"user",
-    #                    "content":f"Translate just the non html of this "+
-    #                                         f"{''.join(st.session_state['suggest'])}{''.join(st.session_state['recommend'])} into {user_input}, "+
-    #                                         "and output only the translated text following the html format"}
-    #         resp = requests.post(f"{API_URL}/OPENAI",json=payload).json()
-    #         # resp = client.chat.completions.create(
-    #         #     model="gpt-4o-mini",
-    #         #     messages=[
-    #         #         {"role":"user","content":f"Translate just the non html of this "+
-    #         #                                 f"{''.join(st.session_state['suggest'])}{''.join(st.session_state['recommend'])} into {user_input}, "+
-    #         #                                 "and output only the translated text following the html format"}
-    #         #     ]
-    #         # )
-    #         st.markdown(f"""
-    #             <div class='poi-recbox scrollable-divLang'>
-    #                     {resp['resp']}
-    #             </div>
-    #             """, unsafe_allow_html=True)
-    # else: # Empty div when one of the itinerary selections is deselected
-    #     st.markdown(f"""
-    #         <div class='poi-recbox'>
-    #         </div>
-    #         """, unsafe_allow_html=True)
