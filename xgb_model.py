@@ -13,6 +13,7 @@ random.seed(SEED)
 
 from weather_req_holiday import Weather_Requester,Holidayer
 
+# Applying the cyclical endoding to forecasting data frame
 def add_calendar_features_future(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     df["dow_sin"] = np.sin(2 * np.pi * df["Date"].dt.dayofweek / 7)
@@ -22,11 +23,13 @@ def add_calendar_features_future(df: pd.DataFrame) -> pd.DataFrame:
     df["is_weekend"] = (df["Date"].dt.dayofweek >= 5).astype(int)
     return df
 
+# Load the correct pickel file
 def load_location_pickle(loc_id: str):
     with open(f"./models/{loc_id}.pkl", "rb") as f:
         bundle = pickle.load(f)
     return bundle
 
+# We are using a sliding window, must obtain the state and alpha as each data set model can vary, no state and alpha works for more then one data set    
 def _init_ewma_state(history: list[float], halflife: float) -> tuple[float, float]:
     alpha = 1.0 - np.exp(np.log(0.5) / halflife)
     if not history:
@@ -37,14 +40,11 @@ def _init_ewma_state(history: list[float], halflife: float) -> tuple[float, floa
         state = alpha * float(v) + (1.0 - alpha) * state
     return state, alpha
 
-Cabrv = {'IRDUB':'IE','NZAUK':'NZ'} # Country Codes
+Cabrv = {'IRDUB':'IE','NZAUK':'NZ'} # Country Codes for Holiday data
+# Loads an XGB location bundle, builds future exogenous inputs (weather+holiday+calendar),
+# and performs recursive forecasting using lag/rolling/EWMA features.
+# Returns Date formatted as YYYY-MM-DD.
 def XGB_MD(loc_id: str, lat: float, lon: float) -> pd.DataFrame:
-    """
-    Loads an XGB location bundle, builds future exogenous inputs (weather+holiday+calendar),
-    and performs recursive forecasting using lag/rolling/EWMA features.
-
-    Returns Date formatted as YYYY-MM-DD.
-    """
     country_code = Cabrv.get(loc_id.split('_')[0])
 
     bundle = load_location_pickle(loc_id)
@@ -58,9 +58,6 @@ def XGB_MD(loc_id: str, lat: float, lon: float) -> pd.DataFrame:
     history = [float(v) for v in history_raw['PedsSen_Count'].dropna().tolist()]
 
     ewma60_state, alpha60 = _init_ewma_state(history, halflife=60.0)
-    use_ewma30 = "ewma30" in features
-    if use_ewma30:
-        ewma30_state, alpha30 = _init_ewma_state(history, halflife=30.0)
 
     # Build exogenous future inputs
     wx = Weather_Requester(lat, lon)
@@ -71,6 +68,7 @@ def XGB_MD(loc_id: str, lat: float, lon: float) -> pd.DataFrame:
 
     preds = []
 
+    # Helps with bulding all lag columns
     def lag(k: int) -> float:
         if len(history) >= k:
             return float(history[-k])
@@ -78,6 +76,8 @@ def XGB_MD(loc_id: str, lat: float, lon: float) -> pd.DataFrame:
 
     for i in range(fut.shape[0]):
         row = fut.iloc[i]
+
+        # Fill this new row then append to window after 
         new = pd.Series(index=features, dtype="float64")
 
         # Lag/rolling/EWMA features (matching training definitions)
@@ -99,8 +99,6 @@ def XGB_MD(loc_id: str, lat: float, lon: float) -> pd.DataFrame:
 
         if "ewma60" in features:
             new["ewma60"] = float(ewma60_state)
-        if use_ewma30:
-            new["ewma30"] = float(ewma30_state)
 
         # Weather
         new["Weather_Temperature"] = float(row["Weather_Temperature"])
@@ -118,7 +116,7 @@ def XGB_MD(loc_id: str, lat: float, lon: float) -> pd.DataFrame:
 
         # Predict in log-space model, then invert with expm1
         X_one = pd.DataFrame([new], columns=features)
-        X_one = imputer.transform(X_one)
+        X_one = imputer.transform(X_one) # ndarry with non zero values to improve ml processing speed
         pred_log = float(model.predict(X_one)[0])
         pred = float(np.clip(np.expm1(pred_log), 0.0, None))
         preds.append(pred)
@@ -126,8 +124,6 @@ def XGB_MD(loc_id: str, lat: float, lon: float) -> pd.DataFrame:
         # Update recursive state with predicted value
         history.append(pred)
         ewma60_state = alpha60 * pred + (1.0 - alpha60) * ewma60_state
-        if use_ewma30:
-            ewma30_state = alpha30 * pred + (1.0 - alpha30) * ewma30_state
 
     out = fut.copy()
     out.insert(1, "PedsSen_Count", np.round(preds, 0))

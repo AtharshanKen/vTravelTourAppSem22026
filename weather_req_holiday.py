@@ -8,22 +8,14 @@ import time
 import openmeteo_requests
 import requests_cache
 from retry_requests import retry
-# trim_date = parser.parse('2026-01-01').date()
 
 # Setup the Open-Meteo API client with cache and retry on error # <--- this is from Open Meteo Api Docs
 cache_session = requests_cache.CachedSession('.cache', expire_after = 3600)
 retry_session = retry(cache_session, retries = 5, backoff_factor = 0.2)
 openmeteo = openmeteo_requests.Client(session = retry_session)
 
+# Returns a DataFrame with:Date,Weather_Temperature,Weather_Wind_Gust,Weather_Relative_Humidity,Weather_Precipitation
 def Weather_Requester(lat:float,lon:float) -> pd.DataFrame:
-    """
-    Returns a DataFrame with:
-      Date,
-      Weather_Temperature,
-      Weather_Wind_Gust,
-      Weather_Relative_Humidity,
-      Weather_Precipitation
-    """
     HsRg = (date.today() - date(date.today().year, 1, 1)).days
     FcRg = 217
     plength = HsRg + FcRg
